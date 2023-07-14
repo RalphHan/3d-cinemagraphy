@@ -76,11 +76,9 @@ class SpaceTimeAnimationModel(object):
                                                       step_size=config['train']['lrate_decay_steps'],
                                                       gamma=config['train']['lrate_decay_factor'])
 
-        out_folder = os.path.join(args.input_dir, 'output')
-        self.start_step = self.load_from_ckpt(out_folder,
-                                              load_opt=load_opt,
+        self.start_step = self.load_from_ckpt(load_opt=load_opt,
                                               load_scheduler=load_scheduler)
-
+        print('start step: {}'.format(self.start_step))
         if args.distributed:
             self.feature_net = torch.nn.parallel.DistributedDataParallel(
                 self.feature_net,
@@ -138,8 +136,7 @@ class SpaceTimeAnimationModel(object):
         self.img_decoder.load_state_dict(to_load['img_decoder'])
         self.netD.load_state_dict(to_load['netD'])
 
-    def load_from_ckpt(self, out_folder,
-                       load_opt=True,
+    def load_from_ckpt(self, load_opt=True,
                        load_scheduler=True,
                        force_latest_ckpt=False):
         '''
@@ -150,9 +147,6 @@ class SpaceTimeAnimationModel(object):
 
         # all existing ckpts
         ckpts = []
-        if os.path.exists(out_folder):
-            ckpts = [os.path.join(out_folder, f)
-                     for f in sorted(os.listdir(out_folder)) if f.endswith('.pth')]
 
         if self.args.ckpt_path is not None and not force_latest_ckpt:
             if os.path.isfile(self.args.ckpt_path):  # load the specified ckpt
